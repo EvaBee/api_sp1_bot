@@ -30,7 +30,7 @@ def parse_homework_status(homework):
 
 
 def get_homeworks(current_timestamp):
-    headers = {"Authorization": f"OAuth {PRAKTIKUM_TOKEN}"}
+    headers = {"Authorization": f"OAuth {PRAKTIСUM_TOKEN}"}
     if current_timestamp is None:
         current_timestamp = int(time.time())
     params = {'from_date': current_timestamp}
