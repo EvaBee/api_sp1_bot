@@ -1,52 +1,68 @@
+import logging
 import os
 import time
+
 import requests
-import telegram
 from dotenv import load_dotenv
+from telegram import Bot
 
 
 load_dotenv()
 
-PRAKTIKUM_TOKEN = os.getenv('PRAKTIKUM_TOKEN')
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-
-# проинициализируйте бота здесь,
-# чтобы он был доступен в каждом нижеобъявленном методе,
-# и не нужно было прокидывать его в каждый вызов
-bot = ...
+PRAKTIKUM_TOKEN = os.getenv("TOKEND")
+TELEGRAM_TOKEN = os.getenv("TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+bot = Bot(token=TELEGRAM_TOKEN)
+chat_id = CHAT_ID
+url = "https://practicum.yandex.ru/api/user_api/homework_statuses/"
 
 
 def parse_homework_status(homework):
-    homework_name = ...
-    if ...
-        verdict = 'К сожалению, в работе нашлись ошибки.'
+    homework_name = homework.get("homework_name")
+    homework_status = homework.get("status")
+    if homework_status == "reviewing":
+        verdict = "работа взята в ревью"
+    elif homework_status == "rejected":
+        verdict = "К сожалению, в работе нашлись ошибки."
     else:
-        verdict = 'Ревьюеру всё понравилось, работа зачтена!'
+        verdict = "Ревьюеру всё понравилось, работа зачтена!"
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
 def get_homeworks(current_timestamp):
-    homework_statuses = ...
-    return homework_statuses.json()
+    headers = {"Authorization": f"OAuth {PRAKTIKUM_TOKEN}"}
+    if current_timestamp is None:
+        current_timestamp = int(time.time())
+    params = {'from_date': current_timestamp}
+    try:
+        homework_statuses = requests.get(url, params=params, headers=headers)
+        return homework_statuses.json()
+    except Exception as e:
+        logging.exception(f'error {e}')
+        return {}
 
 
 def send_message(message):
-    return bot.send_message(...)
+    return bot.send_message(chat_id=CHAT_ID, message=message)
 
 
 def main():
-    current_timestamp = int(time.time())  # Начальное значение timestamp
+    current_timestamp = int(time.time())
 
     while True:
         try:
-            ...
-            time.sleep(5 * 60)  # Опрашивать раз в пять минут
+            new_homework = get_homeworks(current_timestamp)
+            if new_homework.get("homeworks"):
+                send_message(
+                    parse_homework_status(new_homework.get("homeworks")[0]))
+            current_timestamp = new_homework.get(
+                "current_date")
+            time.sleep(300)  # опрашивать раз в пять минут
 
         except Exception as e:
-            print(f'Бот упал с ошибкой: {e}')
+            print(f"Бот упал с ошибкой: {e}")
             time.sleep(5)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
