@@ -20,7 +20,7 @@ url = "https://practicum.yandex.ru/api/user_api/homework_statuses/"
 def parse_homework_status(homework):
     homework_name = homework.get("homework_name")
     homework_status = homework.get("status")
-    if homework_status == "reviewing":
+    if homework_status not in ("approved", "rejected"):
         verdict = "работа взята в ревью"
     elif homework_status == "rejected":
         verdict = "К сожалению, в работе нашлись ошибки."
@@ -47,14 +47,17 @@ def send_message(message):
 
 
 def main():
-    current_timestamp = 1622622666
+    current_timestamp = 12000
 
     while True:
         try:
-            print(1)
-            send_message(
-                parse_homework_status(get_homeworks(current_timestamp)))
-            time.sleep(300)
+            new_homework = get_homeworks(current_timestamp)
+            if new_homework.get('homeworks'):
+                send_message(
+                    parse_homework_status(new_homework.get('homeworks')[0]))
+            current_timestamp = new_homework.get(
+                'current_date')  # обновить timestamp
+            time.sleep(300)  # опрашивать раз в пять минут
         except Exception as e:
             print(f"Бот упал с ошибкой: {e}")
             time.sleep(5)
