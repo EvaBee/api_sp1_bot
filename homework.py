@@ -9,7 +9,7 @@ from telegram import Bot
 
 load_dotenv()
 
-PRAKTIKUM_TOKEN = os.getenv("TOKEND")
+PRAKTIСUM_TOKEN = os.getenv("TOKEND")
 TELEGRAM_TOKEN = os.getenv("TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 chat_id = CHAT_ID
