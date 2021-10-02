@@ -12,8 +12,8 @@ load_dotenv()
 PRAKTIKUM_TOKEN = os.getenv("TOKEND")
 TELEGRAM_TOKEN = os.getenv("TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-bot = Bot(token=TELEGRAM_TOKEN)
 chat_id = CHAT_ID
+bot = Bot(token=TELEGRAM_TOKEN)
 url = "https://practicum.yandex.ru/api/user_api/homework_statuses/"
 
 
@@ -43,22 +43,18 @@ def get_homeworks(current_timestamp):
 
 
 def send_message(message):
-    return bot.send_message(chat_id=CHAT_ID, message=message)
+    return bot.send_message(chat_id=CHAT_ID, text=message)
 
 
 def main():
-    current_timestamp = int(time.time())
+    current_timestamp = 1622622666
 
     while True:
         try:
-            new_homework = get_homeworks(current_timestamp)
-            if new_homework.get("homeworks"):
-                send_message(
-                    parse_homework_status(new_homework.get("homeworks")[0]))
-            current_timestamp = new_homework.get(
-                "current_date")
-            time.sleep(300)  # опрашивать раз в пять минут
-
+            print(1)
+            send_message(
+                parse_homework_status(get_homeworks(current_timestamp)))
+            time.sleep(300)
         except Exception as e:
             print(f"Бот упал с ошибкой: {e}")
             time.sleep(5)
