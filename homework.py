@@ -9,8 +9,8 @@ from telegram import Bot
 
 load_dotenv()
 
-PRAKTIKUM_TOKEN = os.getenv("TOKEND")
-TELEGRAM_TOKEN = os.getenv("TOKEN")
+PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 chat_id = CHAT_ID
 bot = Bot(token=TELEGRAM_TOKEN)
@@ -30,7 +30,7 @@ def parse_homework_status(homework):
 
 
 def get_homeworks(current_timestamp):
-    headers = {"Authorization": f"OAuth {PRAKTIKUM_TOKEN}"}
+    headers = {"Authorization": f"OAuth {PRAKTIKUM_TOKEN }"}
     if current_timestamp is None:
         current_timestamp = int(time.time())
     params = {'from_date': current_timestamp}
@@ -47,7 +47,7 @@ def send_message(message):
 
 
 def main():
-    current_timestamp = 12000
+    current_timestamp = int(time.time())
 
     while True:
         try:
