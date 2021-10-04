@@ -12,34 +12,38 @@ load_dotenv()
 PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-chat_id = CHAT_ID
+URL = "https://practicum.yandex.ru/api/user_api/homework_statuses/"
 bot = Bot(token=TELEGRAM_TOKEN)
-url = "https://practicum.yandex.ru/api/user_api/homework_statuses/"
 
 
 def parse_homework_status(homework):
-    homework_name = homework.get("homework_name")
-    homework_status = homework.get("status")
-    if homework_status not in ("approved", "rejected"):
-        verdict = "работа взята в ревью"
-    elif homework_status == "rejected":
-        verdict = "К сожалению, в работе нашлись ошибки."
+    homework_name = homework.get('homework_name')
+    if homework_name is None:
+        logging.error(
+            f'Яндекс.Практикум вернул неожиданный ответ: {homework_name}')
+        return 'Сервер вернул неожиданный ответ'
+    homework_status = homework.get('status')
+    if homework_status not in ('approved', 'rejected'):
+        logging.error(f'Непредвиденный статус работы: {homework_status}')
+        return 'Сервер вернул непредвиденный статус работы'
+    if homework_status == 'rejected':
+        verdict = 'К сожалению, в работе нашлись ошибки.'
     else:
         verdict = "Ревьюеру всё понравилось, работа зачтена!"
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
 def get_homeworks(current_timestamp):
-    headers = {"Authorization": f"OAuth {PRAKTIKUM_TOKEN }"}
+    headers = {"Authorization": f"OAuth {PRAKTIKUM_TOKEN}"}
     if current_timestamp is None:
         current_timestamp = int(time.time())
-    params = {'from_date': current_timestamp}
+    params = {"from_date": current_timestamp}
     try:
-        homework_statuses = requests.get(url, params=params, headers=headers)
+        homework_statuses = requests.get(URL, params=params, headers=headers)
         return homework_statuses.json()
-    except Exception as e:
-        logging.exception(f'error {e}')
-        return {}
+    except requests.exceptions.RequestException as e:
+        logging.exception("Возникла ошибка при соединении с сервером")
+        raise
 
 
 def send_message(message):
@@ -52,14 +56,14 @@ def main():
     while True:
         try:
             new_homework = get_homeworks(current_timestamp)
-            if new_homework.get('homeworks'):
+            if new_homework.get("homeworks"):
                 send_message(
-                    parse_homework_status(new_homework.get('homeworks')[0]))
+                    parse_homework_status(new_homework.get("homeworks")[0]))
             current_timestamp = new_homework.get(
-                'current_date')  # обновить timestamp
+                "current_date")  # обновить timestamp
             time.sleep(300)  # опрашивать раз в пять минут
         except Exception as e:
-            print(f"Бот упал с ошибкой: {e}")
+            logging.exception(f'Бот упал с ошибкой: {e}')
             time.sleep(5)
 
 
