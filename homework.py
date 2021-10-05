@@ -14,22 +14,22 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 URL = "https://practicum.yandex.ru/api/user_api/homework_statuses/"
 bot = Bot(token=TELEGRAM_TOKEN)
+verdict_statuses = {
+    "reviewing": None,
+    "approved": "Ревьюеру всё понравилось, работа зачтена!",
+    "rejected": "К сожалению, в работе нашлись ошибки."
+}
 
 
 def parse_homework_status(homework):
     homework_name = homework.get("homework_name")
-    if homework_name is None:
-        logging.error(
-            f'Яндекс.Практикум вернул неожиданный ответ: {homework_name}')
-        return "Сервер вернул неожиданный ответ"
     homework_status = homework.get("status")
-    if homework_status not in ("approved", "rejected"):
-        logging.error(f'Непредвиденный статус работы: {homework_status}')
-        return "Сервер вернул непредвиденный статус работы"
-    if homework_status == "rejected":
-        verdict = "К сожалению, в работе нашлись ошибки."
-    else:
-        verdict = "Ревьюеру всё понравилось, работа зачтена!"
+    if homework_status is None or homework_status not in verdict_statuses:
+        logging.error(
+            f'Яндекс Практикум вернул неожиданный ответ: {homework_status}')
+    verdict = verdict_statuses[homework_status]
+    if not verdict:
+        return f'Работа {homework_name} взята в ревью'
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
@@ -63,7 +63,8 @@ def main():
                 "current_date")  # обновить timestamp
             time.sleep(300)  # опрашивать раз в пять минут
         except Exception as e:
-            logging.exception(f'Бот упал с ошибкой: {e}')
+            logging.error(e)
+            send_message(f'Бот упал с ошибкой: {e}')
             time.sleep(5)
 
 
