@@ -3,9 +3,9 @@ import os
 import time
 
 import requests
+import telegram
 from dotenv import load_dotenv
 from telegram import Bot
-
 
 load_dotenv()
 
@@ -25,8 +25,10 @@ def parse_homework_status(homework):
     homework_name = homework.get("homework_name")
     homework_status = homework.get("status")
     if homework_status is None or homework_status not in verdict_statuses:
-        logging.error(
-            f'Яндекс Практикум вернул неожиданный ответ: {homework_status}')
+        error_text = "Яндекс Практикум вернул неожиданный ответ: "
+        f'{homework_status}'
+        logging.error(error_text)
+        return error_text
     verdict = verdict_statuses[homework_status]
     if not verdict:
         return f'Работа {homework_name} взята в ревью'
@@ -63,8 +65,11 @@ def main():
                 "current_date")  # обновить timestamp
             time.sleep(300)  # опрашивать раз в пять минут
         except Exception as e:
-            logging.error(e)
-            send_message(f'Бот упал с ошибкой: {e}')
+            logging.error(f'Бот упал с ошибкой: {e}')
+            try:
+                send_message(f'Бот упал с ошибкой: {e}')
+            except telegram.error.BadRequest:
+                logging.error("Ошибка запроса телеграмм")
             time.sleep(5)
 
 
